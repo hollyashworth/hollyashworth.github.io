@@ -1,0 +1,89 @@
+/* Shared look for every crime scene room (taken from the approved sample room). */
+:root { --ink:#2a1d14; --paper:#f4ead4; --gold:#d9a441; --red:#8e1f1f; --green:#1f3a2c; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; height:100%; overflow:hidden; background:#0b0806; font-family:'Libre Baskerville', Georgia, serif; color:#f3e7cf; }
+#stage { position:fixed; inset:0; touch-action:none; }
+canvas { display:block; }
+.bar { position:fixed; left:0; right:0; top:0; display:flex; align-items:center; gap:10px; padding:10px 14px; background:linear-gradient(#0b0806ee, #0b080600); z-index:5; pointer-events:none; }
+.bar .title { font-weight:700; font-size:15px; letter-spacing:.5px; }
+.bar .title small { display:block; font-weight:400; font-size:11px; opacity:.75; letter-spacing:1.5px; text-transform:uppercase; }
+.bar .count { margin-left:auto; white-space:nowrap; font-size:13px; background:#00000066; border:1px solid #d9a44188; padding:5px 10px; border-radius:20px; }
+.bar .home { pointer-events:auto; color:#f3e7cf; text-decoration:none; font-size:20px; line-height:1; padding:4px 8px 6px; border:1px solid #d9a44166; border-radius:16px; background:#00000055; }
+.tools { position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; gap:8px; padding:12px; z-index:5; background:linear-gradient(#0b080600, #0b0806ee); flex-wrap:wrap; }
+button { font-family:inherit; font-size:13px; color:#f3e7cf; background:#2b1d12dd; border:1px solid #d9a441aa; border-radius:22px; padding:9px 14px; cursor:pointer; }
+button:hover { background:#3d2a1add; }
+button.primary { background:var(--red); border-color:#f0c36c; }
+button.gold { background:#5a4210e6; border-color:#f3cf6a; color:#fff3cf; }
+button.gold.done { background:#2f4a22e6; border-color:#a9d27a; }
+.hint { position:fixed; left:50%; bottom:64px; transform:translateX(-50%); font-size:12px; opacity:.8; z-index:4; pointer-events:none; text-align:center; text-shadow:0 1px 3px #000; transition:opacity .6s; }
+.label { position:fixed; z-index:4; pointer-events:none; transform:translate(-50%,-100%); font-size:12px; padding:3px 8px; border-radius:10px; background:#000000aa; border:1px solid #d9a441; white-space:nowrap; opacity:0; transition:opacity .2s; }
+.modal { position:fixed; inset:0; z-index:10; display:none; align-items:center; justify-content:center; background:#000000b5; padding:16px; }
+.modal.open { display:flex; }
+.card { width:min(560px, 100%); max-height:88vh; overflow:auto; background:var(--paper); color:var(--ink); border-radius:6px; box-shadow:0 20px 60px #000; padding:22px 22px 18px; position:relative; }
+.card h2 { margin:0 0 4px; font-size:19px; padding-right:24px; }
+.card .kicker { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:10px; padding-right:26px; }
+.card p { font-size:14.5px; line-height:1.55; margin:8px 0; }
+.card .close { position:absolute; top:10px; right:12px; background:none; border:none; color:var(--ink); font-size:26px; padding:0 6px; }
+.card .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.card button { color:var(--ink); background:#e6d7b6; border-color:#8a6a3a; }
+.card button.primary { color:#fff; background:var(--red); }
+.card .small { font-size:12.5px; opacity:.8; }
+.doc { background:#fbf5e6; border:1px solid #cdb98f; padding:16px 18px; margin:12px 0; box-shadow:inset 0 0 30px #e8dbbb; transform:rotate(-.6deg); }
+.hand { font-family:'Caveat', cursive; font-size:24px; line-height:1.25; color:#22305a; }
+.type { font-family:'Special Elite', monospace; font-size:14px; line-height:1.6; }
+.observe { border-left:3px solid var(--red); padding:6px 10px; background:#efe2c4; font-size:14px; }
+.notes li { margin:6px 0; font-size:14px; line-height:1.45; }
+.suspect { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed #b89f74; cursor:pointer; }
+.suspect .face { width:54px; height:54px; border-radius:50%; flex:0 0 54px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; }
+.suspect b { display:block; font-size:15px; }
+.suspect span { font-size:13.5px; line-height:1.45; }
+.suspect.cleared { opacity:.55; }
+.suspect.cleared b { text-decoration:line-through; }
+.stamp { margin-left:auto; align-self:center; font-size:11px; letter-spacing:2px; border:2px solid #6b8f4e; color:#4f7a35; padding:3px 6px; transform:rotate(-8deg); display:none; }
+.suspect.cleared .stamp { display:block; }
+.intro .card { text-align:center; }
+.intro h1 { font-size:24px; margin:6px 0 2px; }
+.intro .paper { font-size:12.5px; background:#eadcbc; border-radius:4px; padding:8px 10px; margin-top:12px; }
+.intro a { color:var(--ink); }
+.speaker { display:flex; align-items:center; gap:10px; margin:10px 0; }
+.wave { flex:1; height:24px; display:flex; gap:3px; align-items:center; }
+.wave i { flex:1; background:#8e1f1f; height:20%; border-radius:2px; transition:height .12s; }
+.closeup { width:auto; max-width:100%; max-height:58vh; border-radius:4px; border:1px solid #b89f74; touch-action:manipulation; cursor:zoom-in; display:block; margin:10px auto 6px; background:#1a120c; }
+.miss { min-height:20px; font-size:13px; color:#8e1f1f; }
+.lookcard .row { justify-content:flex-start; }
+/* extra clues (room only, never needed) */
+.extracard { border:2px dashed #8a6a3a; background:#fbf5e6; border-radius:6px; padding:12px 14px 10px; margin:4px 0 6px; }
+.extracard .tag { font-size:10.5px; letter-spacing:2px; text-transform:uppercase; color:#6b5a3a; margin-bottom:4px; }
+.extracard h2 { font-size:18px; }
+.extracard .never { font-size:13.5px; font-weight:700; color:#2f5a22; border-top:1px dashed #b89f74; padding-top:8px; margin-top:10px; }
+.xh { font-size:14px; margin:14px 0 2px; color:#5a4a2a; }
+.notes.extra li { font-size:13px; opacity:.9; }
+/* The Hidden Case: The Missing Star */
+.starcard { background:#fbf5e6; border:1px solid #d9b45a; border-radius:6px; padding:10px 14px 4px; margin:8px 0; box-shadow:inset 0 0 24px #f3e3b5; }
+.starcard .si { color:#c9951f; text-align:center; } .starcard .si svg { width:34px; height:34px; filter:drop-shadow(0 1px 0 #fff6d0); }
+.starcard h3 { margin:2px 0 4px; font-size:16px; text-align:center; }
+.starcard .doc { transform:none; font-size:14.5px; line-height:1.55; }
+.starlist { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin:10px 0 2px; }
+.starlist span { width:32px; height:42px; border:1.5px solid #8a6a3a; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fbf5e6; color:#d8ccb0; }
+.starlist span.got { color:#d9a12a; background:#fff6da; }
+.starlist span.here { border-color:#c9993f; box-shadow:0 0 0 2px #e9c45a66; }
+.starlist span small { font-size:10px; font-weight:700; color:#6b5a3a; margin-top:1px; }
+.pick { margin:10px 0; } .pick b { display:block; font-size:14px; margin-bottom:2px; }
+.pick label { display:flex; gap:10px; align-items:center; padding:7px 4px; border-bottom:1px dashed #cdb98f; font-size:14px; cursor:pointer; }
+.pick input { transform:scale(1.25); }
+.result { margin-top:10px; font-size:14px; line-height:1.5; min-height:4px; }
+.result.bad { color:#8e1f1f; } .result.good { color:#2f5a22; }
+.doc.ending p { margin:6px 0 10px; font-size:15px; }
+/* printed evidence (the same words and layout as the book) */
+.doc.typed { font-family:'Special Elite', monospace; font-size:13.5px; line-height:1.55; }
+.doc.typed ul { margin:6px 0 0; padding-left:20px; } .doc.typed li { margin:4px 0; }
+.doc.notice { border:3px double #4a3a2a; font-size:14px; }
+.doc.hand ul { margin:4px 0 0; padding-left:22px; }
+.doc p { margin:5px 0; }
+table.ev { border-collapse:collapse; width:100%; font-family:Georgia, serif; font-size:13px; margin:6px 0; }
+table.ev th, table.ev td { border:1px solid #6b5a3a; padding:3px 6px; text-align:left; }
+table.ev th { background:#efe2c4; }
+.doc.map { background:#fff; transform:none; padding:8px; }
+.doc.map svg { display:block; width:100%; height:auto; font-family:Georgia, serif; }
+#loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:20; background:#0b0806; font-size:14px; letter-spacing:2px; text-align:center; padding:20px; }
+@media (max-width:600px){ .bar .title{font-size:13px} .bar .title small{font-size:9.5px} .hint{bottom:104px;font-size:11px} button{font-size:12px;padding:8px 11px} .card{padding:18px 16px 14px} .intro h1{font-size:21px} .card p{font-size:14px} }

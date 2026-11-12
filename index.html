@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Christmas Murder Mystery: 3D Crime Scenes</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>:root{--paper:#f4ead4;--ink:#2a1d14;--gold:#d9a441;--red:#8e1f1f}
+*{box-sizing:border-box} html,body{margin:0;background:#0b0806;color:#f3e7cf;font-family:'Libre Baskerville',Georgia,serif}
+body{background:radial-gradient(ellipse at top,#2a1a10 0%,#0b0806 70%) fixed;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:28px 18px 40px}
+.kick{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-align:center}
+h1{font-size:26px;line-height:1.25;text-align:center;margin:8px 0 6px} .sub{text-align:center;font-size:14px;opacity:.85;margin:0 0 18px}
+.snow{text-align:center;letter-spacing:10px;color:#e9eef7;opacity:.7;font-size:12px}
+.note{background:#1d140d;border:1px solid #d9a44155;border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.55;margin:16px 0}
+a.room{display:flex;gap:14px;align-items:center;text-decoration:none;color:var(--ink);background:var(--paper);border-radius:8px;padding:14px 16px;margin:10px 0;box-shadow:0 6px 20px #000a}
+a.room .n{flex:0 0 54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-weight:700;font-size:20px;border:2px solid #f0c36c}
+a.room.p .n{background:#1f3a2c}
+a.room b{display:block;font-size:16px} a.room span{display:block;font-size:12.5px;line-height:1.45;opacity:.85} a.room i{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);font-style:normal;margin-bottom:2px}
+.stars{text-align:center;margin:18px 0 6px;font-size:13px;line-height:1.5} .stars .row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.stars .row span{width:34px;height:44px;border:1.5px solid #d9a44188;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#4a3a26;background:#1d140d}
+.stars .row span.got{color:#f3c24a;border-color:#f3c24a}
+.stars .row svg{width:18px;height:18px}
+.stars .row small{font-size:8px;letter-spacing:.5px;opacity:.75;color:#f3e7cf;margin-top:2px}
+.foot{text-align:center;font-size:11.5px;opacity:.6;margin-top:22px;line-height:1.6}</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kick">Thimbleby Green</div>
+<h1>Christmas Murder Mystery<br>3D Crime Scenes</h1>
+<p class="sub">Step inside the crime scenes from your book.</p>
+<div class="snow">* * * * *</div>
+<div class="note"><b>How it works.</b> Choose the room for tonight's night in your book. Drag to look around, tap anything to look at it, and when something seems wrong, look closer and tap the detail that gives it away. Turn your sound on: some clues are things you hear, and the words are always shown too.</div>
+<a class="room p" href="r/r0/"><div class="n">P</div><div><i>Practice room · Practice Night</i><b>The Study at Penrose House</b><span>Try this one first: a short case to learn how the rooms work.</span></div></a>
+<a class="room" href="r/r1/"><div class="n">1</div><div><i>Crime scene 1 · Nights 3, 4, 8, 17 and 23</i><b>The Workshop</b><span>Where Edmund Crane was found, behind the toy shop.</span></div></a>
+<a class="room" href="r/r2/"><div class="n">2</div><div><i>Crime scene 2 · Night 6</i><b>Felix's Room at the Holly Bush Inn</b><span>Room 3, across the High Street from the green.</span></div></a>
+<a class="room" href="r/r3/"><div class="n">3</div><div><i>Crime scene 3 · Night 7</i><b>Nora's Flat</b><span>Up the stair, above the toy shop.</span></div></a>
+<a class="room" href="r/r4/"><div class="n">4</div><div><i>Crime scene 4 · Nights 9 and 19</i><b>The Kitchen</b><span>Agnes's kitchen, behind the shop.</span></div></a>
+<a class="room" href="r/r5/"><div class="n">5</div><div><i>Crime scene 5 · Nights 11 and 13</i><b>The Church Hall</b><span>Where the choir practises, by the churchyard.</span></div></a>
+<a class="room" href="r/r6/"><div class="n">6</div><div><i>Crime scene 6 · Nights 14 and 15</i><b>Jasper's Attic</b><span>At the top of Dobbs's Bakery.</span></div></a>
+<a class="room" href="r/r7/"><div class="n">7</div><div><i>Crime scene 7 · Nights 10 and 20</i><b>The Vestry</b><span>Where the choir robes are kept, at the side of St Nicholas.</span></div></a>
+<a class="room" href="r/r8/"><div class="n">8</div><div><i>Crime scene 8 · Night 21</i><b>The Yard and the Churchyard Path</b><span>From Edmund's yard gate, across Church Lane and through the churchyard.</span></div></a>
+<a class="room" href="r/r9/"><div class="n">9</div><div><i>Crime scene 9 · Night 24</i><b>The Green on Christmas Eve</b><span>The stage, the stalls and the great tree, where the case ends.</span></div></a>
+<div class="stars" id="stars"></div>
+<div class="note">No app and no sign-up. The whole mystery also works on paper: everything you need for the 24 nights is printed in your book. Each room night also hides one extra clue that you never need. Only The Hidden Case needs the rooms: find the small gold star in each of the nine crime scenes.</div>
+<div class="foot">Christmas Murder Mystery Puzzle Book with 3D Crime Scenes<br>Works on phones, tablets and computers.</div>
+</div><script>(function(){ var codes=['r1','r2','r3','r4','r5','r6','r7','r8','r9'], n=0, h='', solved=false;
+var svg='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2l5.3 11.6 12.7 1.4-9.5 8.6 2.7 12.5L20 29.7 8.8 36.1l2.7-12.5L2 15l12.7-1.4z" fill="currentColor"/></svg>';
+codes.forEach(function(c,i){ var v=false; try{ v=JSON.parse(localStorage.getItem('cm.star.'+c)); }catch(e){} if(v) n++; h+='<span class="'+(v?'got':'')+'">'+svg+'<small>ROOM '+(i+1)+'</small></span>'; });
+try{ solved=JSON.parse(localStorage.getItem('cm.starSolved')); }catch(e){}
+var el=document.getElementById('stars'); if(el) el.innerHTML='<b>The Hidden Case: The Missing Star.</b><br>Gold stars found: '+n+' of 9'+(solved?'. Solved on this phone!':'')+'<div class="row">'+h+'</div>'; })();</script>
+</body>
+</html>

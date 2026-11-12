@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script>(function(){var p=location.pathname;if(location.protocol.indexOf('http')===0&&!/\/$/.test(p)&&!/\.html?$/.test(p))location.replace(p+'/'+location.search+location.hash);})();</script>
+<title>The Study at Penrose House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#2a1d14; --paper:#f4ead4; --gold:#d9a441; --red:#8e1f1f; --green:#1f3a2c; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#0b0806; font-family:'Libre Baskerville', Georgia, serif; color:#f3e7cf; }
+  #stage { position:fixed; inset:0; touch-action:none; }
+  canvas { display:block; }
+  .bar { position:fixed; left:0; right:0; top:0; display:flex; align-items:center; gap:10px; padding:10px 14px; background:linear-gradient(#0b0806ee, #0b080600); z-index:5; pointer-events:none; }
+  .bar .title { font-weight:700; font-size:15px; letter-spacing:.5px; }
+  .bar .title small { display:block; font-weight:400; font-size:11px; opacity:.75; letter-spacing:1.5px; text-transform:uppercase; }
+  .bar .count { margin-left:auto; white-space:nowrap; font-size:13px; background:#00000066; border:1px solid #d9a44188; padding:5px 10px; border-radius:20px; }
+  .tools { position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; gap:8px; padding:12px; z-index:5; background:linear-gradient(#0b080600, #0b0806ee); flex-wrap:wrap; }
+  button { font-family:inherit; font-size:13px; color:#f3e7cf; background:#2b1d12dd; border:1px solid #d9a441aa; border-radius:22px; padding:9px 14px; cursor:pointer; }
+  button:hover { background:#3d2a1add; }
+  button.primary { background:var(--red); border-color:#f0c36c; }
+  .hint { position:fixed; left:50%; bottom:64px; transform:translateX(-50%); font-size:12px; opacity:.8; z-index:4; pointer-events:none; text-align:center; text-shadow:0 1px 3px #000; }
+  .label { position:fixed; z-index:4; pointer-events:none; transform:translate(-50%,-100%); font-size:12px; padding:3px 8px; border-radius:10px; background:#000000aa; border:1px solid #d9a441; white-space:nowrap; opacity:0; transition:opacity .2s; }
+  .modal { position:fixed; inset:0; z-index:10; display:none; align-items:center; justify-content:center; background:#000000b5; padding:16px; }
+  .modal.open { display:flex; }
+  .card { width:min(560px, 100%); max-height:88vh; overflow:auto; background:var(--paper); color:var(--ink); border-radius:6px; box-shadow:0 20px 60px #000; padding:22px 22px 18px; position:relative; }
+  .card h2 { margin:0 0 4px; font-size:19px; }
+  .card .kicker { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:10px; }
+  .card p { font-size:14.5px; line-height:1.55; margin:8px 0; }
+  .card .close { position:absolute; top:10px; right:12px; background:none; border:none; color:var(--ink); font-size:26px; padding:0 6px; }
+  .card .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .card button { color:var(--ink); background:#e6d7b6; border-color:#8a6a3a; }
+  .card button.primary { color:#fff; background:var(--red); }
+  .doc { background:#fbf5e6; border:1px solid #cdb98f; padding:16px 18px; margin:12px 0; box-shadow:inset 0 0 30px #e8dbbb; transform:rotate(-.6deg); }
+  .hand { font-family:'Caveat', cursive; font-size:24px; line-height:1.25; color:#22305a; }
+  .type { font-family:'Special Elite', monospace; font-size:14px; line-height:1.6; }
+  .observe { border-left:3px solid var(--red); padding:6px 10px; background:#efe2c4; font-size:14px; }
+  .notes li { margin:6px 0; font-size:14px; line-height:1.45; }
+  .suspect { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed #b89f74; }
+  .suspect .face { width:54px; height:54px; border-radius:50%; flex:0 0 54px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; }
+  .suspect b { display:block; font-size:15px; }
+  .suspect span { font-size:13.5px; line-height:1.45; }
+  .choice { display:block; width:100%; text-align:left; margin:8px 0; padding:12px 14px; border-radius:6px; }
+  .result { margin-top:12px; padding:12px; border-radius:6px; font-size:14px; line-height:1.5; display:none; }
+  .result.good { display:block; background:#dfeccf; border:1px solid #6b8f4e; }
+  .result.bad { display:block; background:#f3d6cf; border:1px solid #a4483a; }
+  .intro .card { text-align:center; }
+  .intro h1 { font-size:24px; margin:6px 0 2px; }
+  .speaker { display:flex; align-items:center; gap:10px; margin:10px 0; }
+  .wave { flex:1; height:24px; display:flex; gap:3px; align-items:center; }
+  .wave i { flex:1; background:#8e1f1f; height:20%; border-radius:2px; transition:height .12s; }
+  @media (max-width:600px){ .bar .title{font-size:13px} .bar .title small{font-size:9.5px} .hint{bottom:104px;font-size:11px} button{font-size:12px;padding:8px 11px} }
+  .closeup { width:100%; border-radius:4px; border:1px solid #b89f74; touch-action:manipulation; cursor:zoom-in; display:block; margin:10px 0 6px; background:#1a120c; }
+  .miss { min-height:20px; font-size:13px; color:#8e1f1f; }
+  .lookcard .row { justify-content:flex-start; }
+  .suspect.cleared { opacity:.55; }
+  .suspect.cleared b { text-decoration:line-through; }
+  .stamp { margin-left:auto; align-self:center; font-size:11px; letter-spacing:2px; border:2px solid #6b8f4e; color:#4f7a35; padding:3px 6px; transform:rotate(-8deg); display:none; }
+  .suspect.cleared .stamp { display:block; }
+  .suspect { cursor:pointer; }
+  .proof label { display:flex; gap:10px; align-items:flex-start; padding:8px 4px; border-bottom:1px dashed #cdb98f; font-size:14px; line-height:1.4; cursor:pointer; }
+  .proof input { margin-top:3px; transform:scale(1.25); }
+  #loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:20; background:#0b0806; font-size:14px; letter-spacing:2px; }
+  .extracard { border:2px dashed #8a6a3a; background:#fbf5e6; border-radius:6px; padding:12px 14px 10px; margin:4px 0 6px; }
+  .extracard .tag { font-size:10.5px; letter-spacing:2px; text-transform:uppercase; color:#6b5a3a; margin-bottom:4px; }
+  .extracard h2 { font-size:18px; }
+  .extracard .never { font-size:13.5px; font-weight:700; color:#2f5a22; border-top:1px dashed #b89f74; padding-top:8px; margin-top:10px; }
+  .xh { font-size:14px; margin:14px 0 2px; color:#5a4a2a; }
+</style>
+</head>
+<body>
+<div id="loading">LIGHTING THE FIRE...</div>
+<div id="stage"></div>
+
+<div class="bar">
+  <div class="title">The Study at Penrose House<small>Practice room</small></div>
+  <div class="count" id="count">Clues 0 / 7</div>
+</div>
+<div class="hint" id="hint">Drag to look around · Tap anything to look at it</div>
+<div class="label" id="label"></div>
+
+<div class="tools">
+  <button id="btnNotes">Case notes</button>
+  <button id="btnSuspects">Suspects</button>
+  <button id="btnMarkers">Show clue markers</button>
+  <button id="btnAccuse" class="primary">Name the culprit</button>
+</div>
+
+<div class="modal intro open" id="intro">
+  <div class="card">
+    <div class="kicker">Practice Night · Christmas Eve, 9:52 pm</div>
+    <h1>Someone was in the study</h1>
+    <p>The carols were still playing in the hall when Uncle Arthur was found in his study, knocked out cold beside the fire. The window is open. Snow is blowing in.</p>
+    <p><b>Your task:</b> search the room, find what does not belong, and work out who was in the study when it happened.</p>
+    <p style="font-size:13.5px"><b>3 suspects. 7 clues hidden in this room.</b> Tap anything to look at it. If something seems wrong, <b>look closer</b> and find the detail that gives it away. Not everything is a clue.</p>
+    <p style="font-size:13px">There is also <b>one extra clue</b> that is only in this room. You never need it: you can solve the Practice Night without it.</p>
+    <div class="row" style="justify-content:center"><button class="primary" id="enter">Step into the study</button></div>
+    <p style="font-size:12px;opacity:.7;margin-top:14px">Practice room. Sound on: one clue is something you hear.</p>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="card" id="modalCard"></div></div>
+
+<script src="../../assets/three.min.js"></script>
+<script>
+requestAnimationFrame(()=>setTimeout(function(){
+'use strict';
+const T = THREE;
+
+// ---------- clue data ----------
+const CLUES = {
+  clock:   { name:'The mantel clock', kicker:'Clue', html:`<p>The clock has stopped. The glass is cracked, as if it was knocked from the side.</p><div class="observe">It stopped at <b>9:40</b>.</div>`, note:'The mantel clock was knocked and stopped at 9:40. That is when it happened.' },
+  letter:  { name:'A note on the desk', kicker:'Evidence', html:`<div class="doc hand">Uncle A,<br>I will play the carols in the hall from half past nine until the very last one, then I'll bring your tea up.<br>Don't you dare peek at your present!<br>&nbsp;&nbsp;&nbsp;&nbsp;Love, E.</div><p>Written in blue ink, folded twice.</p>`, note:'Note from Evelyn: she planned to play carols in the hall from 9:30 to the end.' },
+  radio:   { name:'The radio on the shelf', kicker:'Listen', audio:true, html:`<p>The radio is still warm. It is tuned to the village station, which is broadcasting the carol evening <b>live</b> from the hall downstairs.</p><div class="speaker"><button class="primary" id="play">Play the broadcast</button><div class="wave" id="wave"></div></div><div class="doc type" id="transcript">"...a lovely Silent Night there, from Miss Evelyn at the piano, playing for us live from the great hall of Penrose House. The church clock says it's twenty to ten, and she's going straight into Deck the Halls..."</div><p style="font-size:12.5px;opacity:.8">The words are printed here too, so the case works without sound.</p>`, note:'Radio, live at 9:40: Evelyn was at the piano in the hall. She was not in the study.' },
+  pad:     { name:'Telephone message pad', kicker:'Evidence', html:`<div class="doc type">MESSAGES<br>9:05 pm  Dr Hale called out to Lower Fen farm. Took the sleigh.<br>9:20 pm  Road closed by snow. No one in or out until morning.<br>9:30 pm  Dr Hale rang from Lower Fen. Snowed in until morning.<br>&nbsp;&nbsp;&nbsp;&nbsp;- A.P.</div>`, note:'Dr Hale left at 9:05, the road closed at 9:20, and at 9:30 he rang from Lower Fen, snowed in. He could not have been back by 9:40.' },
+  prints:  { name:'Wet boot prints', kicker:'Clue', html:`<p>Melting prints lead from the open window to the desk.</p><div class="observe">There is a row of small <b>stars</b> pressed into every print.</div>`, note:'Wet boot prints with a star pattern go from the window to the desk.' },
+  window:  { name:'The open window', kicker:'Clue', html:`<p>The latch is open. The window opens onto the kitchen garden.</p><div class="observe">Fresh snow lies on the sill and the floor.</div>`, note:'The window latch is open, onto the kitchen garden. Fresh snow on the sill and the floor.' },
+  book:    { name:'A book pushed too far in', kicker:'Hidden', html:`<p>One book sits deeper than the rest. Behind it, tucked against the wood, is a heavy iron key on a red ribbon.</p><div class="observe">The tag reads: <b>Garden door</b>.</div>`, note:'Hidden behind a book: the garden-door key on a red ribbon.' },
+};
+const LOOK = {
+  clock:  { name:'The mantel clock', look:'A wooden clock stands among the garland on the mantelpiece.', prompt:'Look at the clock face. What is wrong with it?', hint:'Look at the hands and the glass.', hot:[[0.30,0.12,0.70,0.88]] },
+  letter: { name:'A note on the desk', look:'A folded note lies open on the desk, written in blue ink.', prompt:'Read the note. Which line matters tonight?', hint:'When did she say she would be playing?', hot:[[0.04,0.30,0.96,0.56]] },
+  pad:    { name:'The telephone message pad', look:'A small pad of telephone messages sits beside the telephone.', prompt:'Read the messages. Which one matters?', hint:'Look at what happened to the road.', hot:[[0.04,0.38,0.96,0.75]] },
+  radio:  { name:'The radio', look:'A wooden radio on the side table. It is warm to the touch.', prompt:'Find a way to hear what it is playing.', hint:'Radios have a knob.', hot:[[0.66,0.30,0.90,0.70]] },
+  prints: { name:'Marks on the floor', look:'There are damp marks on the floorboards between the window and the desk.', prompt:'Study the mark closely. What can you see in it?', hint:'Look at the pattern pressed into the sole.', hot:[[0.30,0.10,0.70,0.62]] },
+  window: { name:'The window', look:'The window onto the garden is open. Snow is blowing in.', prompt:'How was it opened? Look at the frame.', hint:'Look at the latch.', hot:[[0.40,0.38,0.62,0.60]] },
+  book:   { name:'The bookcase', look:'Shelves of old books, tidy and dusty.', prompt:'Look along the shelf. Is anything out of line?', hint:'One book sits deeper than the others.', hot:[[0.585,0.18,0.655,0.92]] },
+};
+const DECOYS = {
+  stockings: { name:'The stockings', look:'Three stockings hang from the mantel, one for each of the family.', close:'You look inside each one. Empty, waiting for the morning. Nothing out of place.' },
+  painting:  { name:'The painting', look:'A snowy landscape in a gold frame hangs above the fire.', close:'You look behind the frame. Only dust. Nothing out of place.' },
+  tree:      { name:'The Christmas tree', look:'A tall tree, glass baubles and little lights that blink on and off.', close:'You check the branches and the baubles. Nothing out of place.' },
+  presents:  { name:'The presents', look:'Three wrapped presents under the tree.', close:'The tags read Arthur, Evelyn and Ada. All still wrapped. Nothing out of place.' },
+  chair:     { name:'The armchair', look:'A deep velvet armchair by the fire. Uncle Arthur\'s favourite.', close:'You check under the cushion. A few biscuit crumbs. Nothing out of place.' },
+  door:      { name:'The door', look:'The study door, with a ring of holly on it. It leads to the hall.', close:'The key is still on the inside. Nobody locked it. Nothing out of place.' },
+  portrait:  { name:'The portrait', look:'A stern old gentleman in a gold frame. A grandfather, perhaps.', close:'Just a painting. Nothing out of place.' },
+  cabinet:   { name:'The drinks cabinet', look:'A decanter and two small glasses on a polished cabinet.', close:'The decanter is full and the glasses are clean. Nothing out of place.' },
+  lamp:      { name:'The desk lamp', look:'A green lamp, still switched on.', close:'Warm. It has been on all evening. Nothing out of place.' },
+  phone:     { name:'The telephone', look:'A black telephone with a brass dial.', close:'You lift the receiver. The line is dead: the snow must have brought the wires down. Nothing out of place.' },
+};
+const SUSPECTS = [
+  { id:'evelyn', name:'Evelyn Penrose', role:'His niece', color:'#6b3a7a', fact:'Plays the piano. Promised to play every carol tonight.' },
+  { id:'hale',   name:'Dr Simon Hale', role:'The family doctor', color:'#2f5d7c', fact:'On call tonight for the farms around the village.' },
+  { id:'finch',  name:'Mrs Ada Finch', role:'The housekeeper', color:'#7c5a2f', fact:'Wears her star-soled garden boots in the snow. Keeps the garden-door key on a red ribbon.' },
+];
+const found = new Set(), xfound = new Set();
+const EXTRAS = { glove:{ night:0, name:'Something under the desk', text:'A wet gardening glove under the desk. Its palm has the same little stars as the boot prints.' } };
+LOOK.glove = { name:'Something under the desk', look:'Something dark lies on the floor, right under the desk.', prompt:'Pick it up and turn it over. What is on it?', hint:'Look at the palm of the glove.', hot:[[0.36,0.34,0.66,0.74]] };
+let markersOn = false;
+
+// ---------- renderer ----------
+const stage = document.getElementById('stage');
+const renderer = new T.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputEncoding = T.sRGBEncoding;
+renderer.toneMapping = T.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+document.getElementById('loading').style.display='flex';
+const scene = new T.Scene();
+scene.background = new T.Color(0x0b0806);
+const camera = new T.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.05, 60);
+camera.position.set(0, 1.6, 0.6);
+const RW = 8, RD = 7, RH = 3.3; // room width (x), depth (z), height
+
+// ---------- canvas textures ----------
+function canvasTex(w, h, draw, repeat) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8;
+  if (repeat) { t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+  return t;
+}
+function rnd(a,b){ return a + Math.random()*(b-a); }
+const woodTex = canvasTex(512, 512, (g,w,h)=>{
+  for (let i=0;i<8;i++){ const y=i*h/8; const base = 70+Math.random()*25;
+    g.fillStyle = `rgb(${base+40},${base+10},${base-25})`; g.fillRect(0,y,w,h/8);
+    for (let k=0;k<40;k++){ g.strokeStyle=`rgba(40,20,5,${rnd(.05,.18)})`; g.lineWidth=rnd(.5,2); g.beginPath(); const yy=y+rnd(2,h/8-2); g.moveTo(0,yy); g.bezierCurveTo(w*.3,yy+rnd(-4,4),w*.6,yy+rnd(-4,4),w,yy+rnd(-3,3)); g.stroke(); }
+    g.fillStyle='rgba(20,10,2,.55)'; g.fillRect(0,y,w,2); g.fillRect(rnd(0,w),y,2,h/8);
+  }
+}, [3,3]);
+const wallTex = canvasTex(256, 256, (g,w,h)=>{
+  g.fillStyle='#22402e'; g.fillRect(0,0,w,h);
+  g.strokeStyle='rgba(214,180,110,.22)'; g.lineWidth=1.5;
+  for (let i=-w;i<=w*2;i+=64){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+h,h); g.stroke(); g.beginPath(); g.moveTo(i,h); g.lineTo(i+h,0); g.stroke(); }
+  g.fillStyle='rgba(214,180,110,.32)';
+  for (let x=0;x<=w;x+=64) for (let y=32;y<=h;y+=64){ const cx=x+32, cy=y; g.beginPath(); g.ellipse(cx,cy-6,4,8,0,0,Math.PI*2); g.fill(); g.beginPath(); g.ellipse(cx-7,cy+3,7,3.5,-0.5,0,Math.PI*2); g.fill(); g.beginPath(); g.ellipse(cx+7,cy+3,7,3.5,0.5,0,Math.PI*2); g.fill(); }
+}, [6,2]);
+const panelTex = canvasTex(512, 256, (g,w,h)=>{
+  g.fillStyle='#4a2c18'; g.fillRect(0,0,w,h);
+  for (let i=0;i<4;i++){ const x=i*w/4+14; g.fillStyle='#5a3620'; g.fillRect(x,22,w/4-28,h-44); g.strokeStyle='rgba(0,0,0,.45)'; g.lineWidth=4; g.strokeRect(x,22,w/4-28,h-44); g.strokeStyle='rgba(255,220,170,.12)'; g.lineWidth=2; g.strokeRect(x+5,27,w/4-38,h-54); }
+}, [3,1]);
+const rugTex = canvasTex(512, 384, (g,w,h)=>{
+  g.fillStyle='#7a1d1d'; g.fillRect(0,0,w,h);
+  g.strokeStyle='#d9a441'; g.lineWidth=10; g.strokeRect(18,18,w-36,h-36);
+  g.strokeStyle='#1f3a2c'; g.lineWidth=6; g.strokeRect(40,40,w-80,h-80);
+  g.fillStyle='rgba(217,164,65,.5)';
+  for (let x=80;x<w-60;x+=48) for (let y=80;y<h-60;y+=48){ g.save(); g.translate(x,y); g.rotate(Math.PI/4); g.fillRect(-8,-8,16,16); g.restore(); }
+});
+const brickTex = canvasTex(256, 256, (g,w,h)=>{
+  g.fillStyle='#5b5148'; g.fillRect(0,0,w,h);
+  for (let r=0;r<8;r++) for (let c=0;c<5;c++){ const x=c*52+(r%2?26:0)-26, y=r*32; const v=rnd(-14,14); g.fillStyle=`rgb(${120+v},${108+v},${96+v})`; g.fillRect(x+2,y+2,48,28); }
+}, [1,1]);
+const clockTex = canvasTex(256, 256, (g,w,h)=>{
+  g.fillStyle='#f3ead2'; g.beginPath(); g.arc(128,128,120,0,Math.PI*2); g.fill();
+  g.strokeStyle='#3a2a1a'; g.lineWidth=6; g.stroke();
+  g.fillStyle='#2a1d14'; g.font='bold 26px Georgia'; g.textAlign='center'; g.textBaseline='middle';
+  const nums=['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+  for (let i=0;i<12;i++){ const a=i*Math.PI/6-Math.PI/2; g.fillText(nums[i],128+Math.cos(a)*92,128+Math.sin(a)*92); }
+  const hand=(ang,len,wid)=>{ g.save(); g.translate(128,128); g.rotate(ang); g.fillStyle='#1a120c'; g.fillRect(-wid/2,-len,wid,len); g.restore(); };
+  hand((9+40/60)/12*Math.PI*2, 58, 8); hand(40/60*Math.PI*2, 86, 5);
+  g.strokeStyle='rgba(60,60,60,.7)'; g.lineWidth=2; g.beginPath(); g.moveTo(40,70); g.lineTo(120,140); g.lineTo(150,220); g.moveTo(120,140); g.lineTo(210,110); g.stroke();
+});
+const paintingTex = canvasTex(512, 384, (g,w,h)=>{
+  const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#1c2a44'); gr.addColorStop(.6,'#5d6d8a'); gr.addColorStop(1,'#dfe6ef'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  g.fillStyle='#eef2f6'; g.beginPath(); g.moveTo(0,h*.72); g.quadraticCurveTo(w*.3,h*.6,w*.55,h*.74); g.quadraticCurveTo(w*.8,h*.86,w,h*.7); g.lineTo(w,h); g.lineTo(0,h); g.fill();
+  for (let i=0;i<9;i++){ const x=rnd(20,w-20), y=h*rnd(.6,.78), s=rnd(18,40); g.fillStyle='#1e3326'; g.beginPath(); g.moveTo(x,y-s*2); g.lineTo(x-s*.7,y); g.lineTo(x+s*.7,y); g.fill(); }
+  g.fillStyle='#f6e7a8'; g.beginPath(); g.arc(w*.78,h*.2,16,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(255,230,160,.9)'; g.fillRect(w*.42,h*.66,18,14);
+});
+const spineColors=['#6e1f1f','#1f3a2c','#2f4a6b','#5a3a1a','#3d2b4f','#7a5a22','#2a2a2a','#4f2a2a'];
+
+// ---------- materials ----------
+const M = (o)=> new T.MeshStandardMaterial(o);
+const matWood = M({ map:woodTex, roughness:.65, metalness:.0 });
+const matDark = M({ color:0x3b2414, roughness:.6 });
+const matBrass = M({ color:0xc9993f, roughness:.35, metalness:.8 });
+const matPaper = M({ color:0xf2e8d0, roughness:.9 });
+
+function box(w,h,d,mat,x,y,z,cast=true){ const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=true; scene.add(m); return m; }
+function cyl(rt,rb,h,mat,x,y,z,seg=24){ const m=new T.Mesh(new T.CylinderGeometry(rt,rb,h,seg),mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; scene.add(m); return m; }
+
+// ---------- room shell ----------
+const floor = new T.Mesh(new T.PlaneGeometry(RW,RD), matWood); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+const ceil = new T.Mesh(new T.PlaneGeometry(RW,RD), M({ color:0xd8cdb6, roughness:1 })); ceil.rotation.x=Math.PI/2; ceil.position.y=RH; scene.add(ceil);
+for (let i=-3;i<=3;i+=1.5){ box(0.22,0.2,RD,matDark,i,RH-0.1,0,false); }
+const wallMat = M({ map:wallTex, roughness:.9 });
+const panelMat = M({ map:panelTex, roughness:.7 });
+function wall(w,x,z,ry){
+  const g=new T.Group(); g.position.set(x,0,z); g.rotation.y=ry;
+  const up=new T.Mesh(new T.PlaneGeometry(w,RH-1.05), wallMat); up.position.y=1.05+(RH-1.05)/2; up.receiveShadow=true; g.add(up);
+  const lo=new T.Mesh(new T.PlaneGeometry(w,1.05), panelMat); lo.position.y=0.525; lo.receiveShadow=true; g.add(lo);
+  const rail=new T.Mesh(new T.BoxGeometry(w,0.06,0.05), matDark); rail.position.set(0,1.06,0.02); g.add(rail);
+  const skirt=new T.Mesh(new T.BoxGeometry(w,0.14,0.04), matDark); skirt.position.set(0,0.07,0.02); g.add(skirt);
+  scene.add(g); return g;
+}
+// back wall has a window opening: build back wall in three parts
+const backZ = -RD/2;
+(function backWall(){
+  const winX=-1.6, winW=1.6, winB=0.95, winT=2.55;
+  const leftW = (winX-winW/2) - (-RW/2), rightW = RW/2 - (winX+winW/2);
+  const L = wall(leftW, -RW/2+leftW/2, backZ, 0);
+  const R = wall(rightW, RW/2-rightW/2, backZ, 0);
+  const top = new T.Mesh(new T.PlaneGeometry(winW, RH-winT), wallMat); top.position.set(winX, winT+(RH-winT)/2, backZ); scene.add(top);
+  const lowWall = new T.Mesh(new T.PlaneGeometry(winW, winB), panelMat); lowWall.position.set(winX, winB/2, backZ); scene.add(lowWall);
+  // frame
+  const fr = M({ color:0xe9e1cf, roughness:.6 });
+  box(winW+0.16,0.08,0.18,fr,winX,winB,backZ+0.02); box(winW+0.16,0.08,0.18,fr,winX,winT,backZ+0.02);
+  box(0.08,winT-winB,0.18,fr,winX-winW/2,(winB+winT)/2,backZ+0.02); box(0.08,winT-winB,0.18,fr,winX+winW/2,(winB+winT)/2,backZ+0.02);
+  // sill with snow
+  box(winW+0.3,0.06,0.32,fr,winX,winB-0.02,backZ+0.12);
+  const snowMat = M({ color:0xffffff, roughness:.95 });
+  box(winW*0.9,0.03,0.22,snowMat,winX,winB+0.025,backZ+0.12,false);
+  // left pane closed (glass), right pane swung open into room
+  const glass = new T.MeshPhysicalMaterial({ color:0xbfd4ee, transparent:true, opacity:.18, roughness:.05, metalness:0, transmission:.0 });
+  const lp = new T.Mesh(new T.PlaneGeometry(winW/2-0.06, winT-winB-0.1), glass); lp.position.set(winX-winW/4, (winB+winT)/2, backZ+0.01); scene.add(lp);
+  const hinge = new T.Group(); hinge.position.set(winX+winW/2-0.04, (winB+winT)/2, backZ+0.06); scene.add(hinge);
+  const rp = new T.Mesh(new T.PlaneGeometry(winW/2-0.06, winT-winB-0.1), glass); rp.position.x = -(winW/4); hinge.add(rp);
+  const rpf = new T.Mesh(new T.BoxGeometry(winW/2-0.04, winT-winB-0.08, 0.03), M({ color:0xe9e1cf, roughness:.6, transparent:true, opacity:.0 })); hinge.add(rpf);
+  hinge.rotation.y = -1.05; window.__pane = hinge;
+  // outside: night sky + snowy garden
+  const sky = new T.Mesh(new T.PlaneGeometry(14,8), new T.MeshBasicMaterial({ map:canvasTex(512,256,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#0c1426'); gr.addColorStop(1,'#33415e'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle='#e9eef7'; g.beginPath(); g.moveTo(0,h*.78); g.quadraticCurveTo(w*.5,h*.62,w,h*.8); g.lineTo(w,h); g.lineTo(0,h); g.fill(); for(let i=0;i<14;i++){ const x=rnd(0,w), y=h*rnd(.62,.74), s=rnd(10,26); g.fillStyle='#16261d'; g.beginPath(); g.moveTo(x,y-s*2.2); g.lineTo(x-s*.7,y); g.lineTo(x+s*.7,y); g.fill(); } g.fillStyle='rgba(255,214,140,.95)'; g.fillRect(w*.7,h*.62,10,8); }) }));
+  sky.position.set(winX, 1.8, backZ-4); scene.add(sky);
+  // curtains
+  const curt = M({ color:0x7a1717, roughness:.85, side:T.DoubleSide });
+  for (const s of [-1,1]){
+    const geo = new T.PlaneGeometry(0.55, RH-0.25, 10, 1); const pos=geo.attributes.position;
+    for (let i=0;i<pos.count;i++){ pos.setZ(i, Math.sin(pos.getX(i)*22)*0.04); }
+    geo.computeVertexNormals();
+    const c = new T.Mesh(geo, curt); c.position.set(winX + s*(winW/2+0.22), (RH-0.25)/2+0.05, backZ+0.16); c.castShadow=true; scene.add(c);
+    if (s===1) window.__curtain = c;
+  }
+  box(winW+1.4,0.05,0.05,matBrass,winX,RH-0.18,backZ+0.18,false);
+  window.__winX = winX;
+})();
+wall(RW, 0, RD/2, Math.PI);           // front wall (behind start)
+wall(RD, -RW/2, 0, Math.PI/2);        // left wall
+wall(RD, RW/2, 0, -Math.PI/2);        // right wall
+
+// ---------- front wall: door with hollyRing, portrait; cabinet ----------
+(function front(){ const z=RD/2-0.03; const door=M({ color:0x3b2414, roughness:.5 });
+  box(1.1,2.2,0.06,door,1.6,1.1,z); box(0.9,0.85,0.02,M({color:0x4a2d19,roughness:.5}),1.6,1.65,z-0.04); box(0.9,0.85,0.02,M({color:0x4a2d19,roughness:.5}),1.6,0.6,z-0.04);
+  const knob=new T.Mesh(new T.SphereGeometry(0.045,12,10), matBrass); knob.position.set(1.2,1.05,z-0.07); scene.add(knob);
+  const hollyRing=new T.Mesh(new T.TorusGeometry(0.24,0.07,10,28), M({ color:0x1d4d2b, roughness:.9 })); hollyRing.position.set(1.6,1.75,z-0.1); scene.add(hollyRing);
+  for (let i=0;i<10;i++){ const a=i/10*Math.PI*2; const b=new T.Mesh(new T.SphereGeometry(0.025,8,6), M({ color:0xc21d1d, roughness:.3 })); b.position.set(1.6+Math.cos(a)*0.24,1.75+Math.sin(a)*0.24,z-0.17); scene.add(b); }
+  box(0.16,0.12,0.04,M({color:0xb3241f,roughness:.6}),1.6,1.5,z-0.16,false);
+  const pf=box(0.9,1.1,0.05,M({color:0xb08a3a,roughness:.35,metalness:.6}),-1.2,2.0,z,false);
+  const portrait=new T.Mesh(new T.PlaneGeometry(0.76,0.96), M({ map:canvasTex(256,320,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#3a2a1c'); gr.addColorStop(1,'#1c130c'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle='#2b2b3a'; g.beginPath(); g.moveTo(w*.2,h); g.quadraticCurveTo(w*.5,h*.55,w*.8,h); g.fill(); g.fillStyle='#caa27c'; g.beginPath(); g.ellipse(w/2,h*.42,w*.16,h*.14,0,0,Math.PI*2); g.fill(); g.fillStyle='#d8d2c4'; g.beginPath(); g.ellipse(w/2,h*.3,w*.17,h*.07,0,Math.PI,0); g.fill(); }), roughness:.8 }));
+  portrait.position.set(-1.2,2.0,z-0.03); portrait.rotation.y=Math.PI; scene.add(portrait);
+  box(1.2,0.9,0.45,matDark,-2.6,0.45,z-0.25); box(1.24,0.05,0.49,matWood,-2.6,0.92,z-0.25);
+  const dec=cyl(0.06,0.09,0.26,new T.MeshPhysicalMaterial({ color:0xd9a441, transparent:true, opacity:.55, roughness:.05 }),-2.85,1.08,z-0.25); cyl(0.025,0.025,0.06,matBrass,-2.85,1.24,z-0.25);
+  for (const x of [-2.55,-2.4]) cyl(0.035,0.025,0.09,new T.MeshPhysicalMaterial({ color:0xeeeeee, transparent:true, opacity:.5, roughness:.05 }),x,0.99,z-0.25);
+})();
+
+// ---------- rug and prints ----------
+const rug = new T.Mesh(new T.PlaneGeometry(3.6,2.6), M({ map:rugTex, roughness:1 })); rug.rotation.x=-Math.PI/2; rug.position.set(0.3,0.006,-0.6); rug.receiveShadow=true; scene.add(rug);
+const printTex = canvasTex(128,256,(g,w,h)=>{
+  g.clearRect(0,0,w,h); g.fillStyle='rgba(28,22,16,.62)';
+  g.beginPath(); g.moveTo(w*.22,h*.12); g.quadraticCurveTo(w*.5,-h*.02,w*.8,h*.14); g.quadraticCurveTo(w*.95,h*.38,w*.78,h*.6); g.lineTo(w*.24,h*.6); g.quadraticCurveTo(w*.05,h*.38,w*.22,h*.12); g.fill();
+  g.beginPath(); g.ellipse(w/2,h*.8,w*.34,h*.1,0,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(225,232,240,.55)';
+  const star=(cx,cy,r)=>{ g.beginPath(); for(let i=0;i<10;i++){ const a=i*Math.PI/5-Math.PI/2, rr=i%2?r*.45:r; g.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } g.closePath(); g.fill(); };
+  for (let i=0;i<3;i++) for (let j=0;j<2;j++) star(w*.32+j*w*.36, h*.18+i*h*.11, 9); star(w/2,h*.8,10);
+});
+const printMat = new T.MeshStandardMaterial({ map:printTex, transparent:true, roughness:.3, depthWrite:false });
+const prints = new T.Group(); scene.add(prints);
+const winX0 = window.__winX;
+// walk line from the window (start) to the front of the desk (end)
+const walk = [[winX0+0.05,-3.05],[winX0-0.05,-2.70],[winX0-0.15,-2.36],[winX0-0.24,-2.03],[winX0-0.30,-1.72]];
+walk.forEach((p,i)=>{
+  const nx = walk[Math.min(i+1,walk.length-1)], pv = walk[Math.max(i-1,0)];
+  const dx = (i<walk.length-1 ? nx[0]-p[0] : p[0]-pv[0]), dz = (i<walk.length-1 ? nx[1]-p[1] : p[1]-pv[1]);
+  const len = Math.hypot(dx,dz), ux=dx/len, uz=dz/len; const side = (i%2?1:-1)*0.07; // left and right feet
+  const mat = printMat.clone(); mat.opacity = 0.95 - i*0.12;   // wetter near the window
+  const m=new T.Mesh(new T.PlaneGeometry(0.15,0.31), mat); m.rotation.x=-Math.PI/2; m.rotation.z = Math.atan2(-ux,-uz);
+  m.position.set(p[0] + (-uz)*side, 0.011+i*0.0005, p[1] + (ux)*side); prints.add(m); });
+const snowPatch = new T.Mesh(new T.PlaneGeometry(1.4,0.9), new T.MeshStandardMaterial({ map:canvasTex(256,160,(g,w,h)=>{ const gr=g.createRadialGradient(w/2,h*.35,8,w/2,h/2,w*.5); gr.addColorStop(0,'rgba(250,252,255,.95)'); gr.addColorStop(.6,'rgba(240,246,252,.6)'); gr.addColorStop(1,'rgba(240,246,252,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); for(let i=0;i<80;i++){ g.fillStyle='rgba(255,255,255,.8)'; g.fillRect(rnd(w*.2,w*.8),rnd(h*.1,h*.8),2,2);} }), transparent:true, roughness:1, depthWrite:false })); snowPatch.rotation.x=-Math.PI/2; snowPatch.position.set(winX0,0.008,-3.0); scene.add(snowPatch);
+
+// ---------- fireplace (right wall) ----------
+const fx = RW/2-0.35, fz = -0.9;
+const brick = M({ map:brickTex, roughness:.95 });
+box(0.7,1.25,2.0,brick,fx,0.625,fz);
+const opening = box(0.05,0.75,1.0,M({ color:0x080503, roughness:1 }),fx-0.36,0.45,fz,false);
+box(0.95,0.12,2.4,M({ color:0x3b2414, roughness:.5 }),fx-0.1,1.3,fz);
+const fireLight = new T.PointLight(0xff8a3a, 2.2, 7, 2); fireLight.position.set(fx-0.6,0.5,fz); fireLight.castShadow=false; scene.add(fireLight);
+const flameTex = canvasTex(64,128,(g,w,h)=>{ const gr=g.createRadialGradient(w/2,h*.72,2,w/2,h*.6,w*.55); gr.addColorStop(0,'rgba(255,245,200,1)'); gr.addColorStop(.35,'rgba(255,170,60,.9)'); gr.addColorStop(1,'rgba(255,80,10,0)'); g.fillStyle=gr; g.beginPath(); g.moveTo(w/2,0); g.quadraticCurveTo(w,h*.6,w/2,h); g.quadraticCurveTo(0,h*.6,w/2,0); g.fill(); });
+const flames=[]; for (let i=0;i<7;i++){ const f=new T.Sprite(new T.SpriteMaterial({ map:flameTex, color:0xffffff, transparent:true, blending:T.AdditiveBlending, depthWrite:false })); f.scale.set(0.16,0.34,1); f.position.set(fx-0.42,0.3,fz-0.33+i*0.11); scene.add(f); flames.push(f); }
+for (let i=0;i<3;i++){ const l=cyl(0.05,0.05,0.7,M({color:0x3a2415,roughness:1}),fx-0.42,0.13,fz-0.15+i*0.1,8); l.rotation.x=Math.PI/2; l.rotation.z=rnd(-.3,.3); }
+// stockings
+const stockColors=[0xb3241f,0x1f5a33,0xb3241f];
+for (let i=0;i<3;i++){ const s=box(0.06,0.32,0.14,M({color:stockColors[i],roughness:.9}),fx-0.55,1.05,fz-0.6+i*0.6,false); box(0.065,0.08,0.16,M({color:0xf4f1ea,roughness:1}),fx-0.55,1.2,fz-0.6+i*0.6,false); box(0.06,0.09,0.12,M({color:stockColors[i],roughness:.9}),fx-0.55,0.92,fz-0.6+i*0.6+0.06,false); }
+// garland on mantel
+for (let i=0;i<14;i++){ const b=new T.Mesh(new T.SphereGeometry(0.06,8,6), M({ color:0x1f4a2a, roughness:.9 })); b.position.set(fx-0.45,1.39,fz-1.1+i*0.17); scene.add(b); if (i%3===0){ const r=new T.Mesh(new T.SphereGeometry(0.025,8,6), M({ color:0xc21d1d, roughness:.3 })); r.position.set(fx-0.5,1.42,fz-1.1+i*0.17); scene.add(r);} }
+// clock (clue)
+const clockGroup = new T.Group(); clockGroup.position.set(fx-0.4,1.56,fz+0.55); clockGroup.rotation.y=-Math.PI/2 + 0.25; clockGroup.rotation.z = 0.18; scene.add(clockGroup);
+const cbody = new T.Mesh(new T.BoxGeometry(0.34,0.4,0.14), M({ color:0x5a3218, roughness:.4 })); cbody.castShadow=true; clockGroup.add(cbody);
+const cface = new T.Mesh(new T.CircleGeometry(0.13,32), M({ map:clockTex, roughness:.4 })); cface.position.z=0.071; clockGroup.add(cface);
+// painting above mantel
+const frame = box(0.06,1.0,1.3,M({color:0xb08a3a,roughness:.35,metalness:.6}),RW/2-0.03,2.25,fz,false);
+const paint = new T.Mesh(new T.PlaneGeometry(1.15,0.86), M({ map:paintingTex, roughness:.8 })); paint.position.set(RW/2-0.065,2.25,fz); paint.rotation.y=-Math.PI/2; scene.add(paint);
+// armchair
+(function chair(){ const c=M({ color:0x3a1212, roughness:.85 }); const x=1.9,z=-1.9;
+  box(0.9,0.42,0.85,c,x,0.21,z); box(0.9,0.75,0.18,c,x+0.05,0.75,z-0.35); box(0.16,0.35,0.85,c,x-0.37,0.55,z); box(0.16,0.35,0.85,c,x+0.37,0.55,z); })();
+
+// ---------- Christmas tree (back right corner) ----------
+const treeGroup = new T.Group(); treeGroup.position.set(2.7,0,-2.75); scene.add(treeGroup);
+const needle = M({ color:0x173f23, roughness:.85 });
+for (let i=0;i<5;i++){ const c=new T.Mesh(new T.ConeGeometry(0.95-i*0.17, 0.75, 14), needle); c.position.y=0.55+i*0.42; c.castShadow=true; treeGroup.add(c); }
+const trunk = new T.Mesh(new T.CylinderGeometry(0.07,0.09,0.4,10), M({color:0x3a2415})); trunk.position.y=0.2; treeGroup.add(trunk);
+const starTop = new T.Mesh(new T.OctahedronGeometry(0.12), M({ color:0xffd36b, emissive:0xffb020, emissiveIntensity:1.4 })); starTop.position.y=2.68; treeGroup.add(starTop);
+const bulbs=[]; const bulbCols=[0xff4040,0xffd36b,0x6bd3ff,0xff8ad0,0x9cff6b];
+for (let i=0;i<46;i++){ const t=i/46; const y=0.5+t*2.0; const r=(1-t)*0.85+0.08; const a=i*2.4;
+  const m=new T.Mesh(new T.SphereGeometry(0.035,8,6), new T.MeshStandardMaterial({ color:bulbCols[i%5], emissive:bulbCols[i%5], emissiveIntensity:1.2 }));
+  m.position.set(Math.cos(a)*r, y, Math.sin(a)*r); treeGroup.add(m); bulbs.push(m); }
+for (let i=0;i<18;i++){ const t=Math.random(); const y=0.6+t*1.8; const r=(1-t)*0.8+0.1; const a=rnd(0,Math.PI*2);
+  const o=new T.Mesh(new T.SphereGeometry(0.06,12,10), new T.MeshStandardMaterial({ color:[0xb3241f,0xd9a441,0xe9e1cf][i%3], roughness:.2, metalness:.7 })); o.position.set(Math.cos(a)*r,y,Math.sin(a)*r); treeGroup.add(o); }
+const treeLight = new T.PointLight(0xffd59a, 0.9, 5, 2); treeLight.position.set(0,1.4,0.6); treeGroup.add(treeLight);
+const giftCols=[[0x8e1f1f,0xd9a441],[0x1f3a2c,0xe9e1cf],[0x2f4a6b,0xd9a441]];
+giftCols.forEach((gc,i)=>{ const g=box(0.38-i*0.05,0.26,0.32,M({color:gc[0],roughness:.6}),2.2+i*0.35,0.13,-2.2-i*0.18); box(0.39-i*0.05,0.27,0.05,M({color:gc[1],roughness:.4}),2.2+i*0.35,0.13,-2.2-i*0.18,false); box(0.05,0.27,0.33,M({color:gc[1],roughness:.4}),2.2+i*0.35,0.13,-2.2-i*0.18,false); });
+
+// ---------- desk (left) with letter, pad, telephone, lamp ----------
+const dx=-2.6, dz=-1.2;
+box(1.0,0.06,1.8,matWood,dx,0.78,dz); box(0.9,0.72,0.08,matDark,dx,0.39,dz-0.85); box(0.9,0.72,0.08,matDark,dx,0.39,dz+0.85);
+box(0.08,0.72,1.6,matDark,dx-0.46,0.39,dz);
+const letter = new T.Mesh(new T.PlaneGeometry(0.28,0.36), M({ map:canvasTex(256,320,(g,w,h)=>{ g.fillStyle='#f6eedb'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(34,48,90,.75)'; g.lineWidth=3; for(let y=40;y<h-30;y+=26){ g.beginPath(); let x=24; g.moveTo(x,y); while(x<w-30){ x+=rnd(8,18); g.lineTo(x,y+rnd(-4,4)); } g.stroke(); } g.strokeStyle='rgba(0,0,0,.12)'; g.beginPath(); g.moveTo(0,h/3); g.lineTo(w,h/3); g.moveTo(0,2*h/3); g.lineTo(w,2*h/3); g.stroke(); }), roughness:.9 }));
+letter.rotation.x=-Math.PI/2; letter.rotation.z=0.35; letter.position.set(dx+0.15,0.815,dz+0.15); scene.add(letter);
+const pad = new T.Mesh(new T.BoxGeometry(0.2,0.02,0.26), M({ map:canvasTex(128,160,(g,w,h)=>{ g.fillStyle='#f3f0e6'; g.fillRect(0,0,w,h); g.fillStyle='#b23a3a'; g.fillRect(0,0,w,18); g.strokeStyle='rgba(20,20,20,.6)'; g.lineWidth=2; for(let y=34;y<h-10;y+=16){ g.beginPath(); g.moveTo(10,y); g.lineTo(rnd(60,w-10),y); g.stroke(); } }), roughness:.9 }));
+pad.position.set(dx+0.1,0.82,dz-0.55); pad.castShadow=true; scene.add(pad);
+// telephone
+const phone = new T.Group(); phone.position.set(dx-0.15,0.81,dz-0.6); scene.add(phone);
+const pb = new T.Mesh(new T.BoxGeometry(0.22,0.1,0.24), M({ color:0x151515, roughness:.3 })); pb.position.y=0.05; pb.castShadow=true; phone.add(pb);
+const dial = new T.Mesh(new T.CylinderGeometry(0.07,0.07,0.01,24), matBrass); dial.position.set(0,0.105,0.04); phone.add(dial);
+const hs = new T.Mesh(new T.CapsuleGeometry ? new T.CapsuleGeometry(0.03,0.2,4,8) : new T.CylinderGeometry(0.03,0.03,0.26), M({ color:0x151515, roughness:.3 })); hs.rotation.z=Math.PI/2; hs.position.set(0,0.14,-0.05); phone.add(hs);
+// lamp
+const lampBase = cyl(0.08,0.1,0.04,matBrass,dx-0.2,0.83,dz+0.6); cyl(0.015,0.015,0.45,matBrass,dx-0.2,1.07,dz+0.6);
+const shade = cyl(0.1,0.2,0.2,M({ color:0x2e5a3a, emissive:0x2e5a3a, emissiveIntensity:.25, side:T.DoubleSide, roughness:.5 }),dx-0.2,1.3,dz+0.6);
+const lampLight = new T.PointLight(0xffc27a, 1.3, 5, 2); lampLight.position.set(dx-0.2,1.22,dz+0.6); scene.add(lampLight);
+const key = new T.SpotLight(0xffc890, 0.55, 14, Math.PI/3.2, 0.6, 1.5); key.position.set(0.5,3.1,1.8); key.target.position.set(-0.2,0,-1.2); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.shadow.bias=-0.0015; scene.add(key); scene.add(key.target);
+// a wet gardening glove, dropped under the desk (the extra clue for the Practice Night)
+const glove = new T.Group(); glove.position.set(dx+0.12,0.012,dz+0.22); glove.rotation.y=0.7; scene.add(glove);
+{ const gm = M({ color:0x3e5a34, roughness:.32 }); const pm2 = new T.Mesh(new T.BoxGeometry(0.1,0.022,0.11), gm); glove.add(pm2);
+  for (let i=0;i<4;i++){ const f=new T.Mesh(new T.BoxGeometry(0.02,0.018,0.07), gm); f.position.set(-0.036+i*0.024,0,-0.085-(i%3?0.008:0)); glove.add(f); }
+  const th=new T.Mesh(new T.BoxGeometry(0.022,0.018,0.06), gm); th.position.set(0.066,0,-0.02); th.rotation.y=-0.6; glove.add(th);
+  const cf=new T.Mesh(new T.BoxGeometry(0.11,0.026,0.04), M({ color:0x2e4428, roughness:.5 })); cf.position.set(0,0.002,0.072); glove.add(cf);
+  const wet=new T.Mesh(new T.PlaneGeometry(0.22,0.2), new T.MeshStandardMaterial({ color:0x1a1410, transparent:true, opacity:.35, roughness:.1, depthWrite:false })); wet.rotation.x=-Math.PI/2; wet.position.y=-0.009; glove.add(wet); }
+// desk chair
+box(0.5,0.06,0.5,matDark,dx+0.75,0.48,dz); box(0.06,0.6,0.5,matDark,dx+1.0,0.8,dz); for (const a of [[-.22,-.22],[-.22,.22],[.22,-.22],[.22,.22]]) box(0.05,0.46,0.05,matDark,dx+0.75+a[0],0.23,dz+a[1]);
+
+// ---------- bookcase (left wall, nearer the front) ----------
+const bx=-RW/2+0.25, bz=1.6;
+box(0.04,2.4,1.8,matDark,-RW/2+0.03,1.2,bz); box(0.45,2.4,0.05,matDark,bx,1.2,bz-0.9); box(0.45,2.4,0.05,matDark,bx,1.2,bz+0.9); box(0.47,0.06,1.85,matDark,bx,2.42,bz);
+const bookMeshes=[]; let pushedBook=null;
+for (let s=0;s<5;s++){ const y=0.15+s*0.46; box(0.42,0.04,1.72,matWood,bx+0.02,y,bz,false);
+  let z=bz-0.82; let n=0;
+  while (z<bz+0.8){ const w=rnd(0.04,0.08), h=rnd(0.26,0.38); const col=spineColors[Math.floor(Math.random()*spineColors.length)];
+    const pushed = (s===2 && n===7);
+    const b=new T.Mesh(new T.BoxGeometry(0.3,h,w), M({ color:col, roughness:.7 })); b.position.set(bx+(pushed?-0.1:0.0), y+0.02+h/2, z+w/2); b.castShadow=true; scene.add(b);
+    if (pushed){ pushedBook=b; b.material = M({ color:0x6e1f1f, roughness:.6 }); }
+    const band=new T.Mesh(new T.BoxGeometry(0.302,0.02,w+0.002), matBrass); band.position.copy(b.position); band.position.y+=h*0.3; scene.add(band);
+    z+=w+0.005; n++; }
+}
+// radio on a side table near the bookcase
+const st = box(0.6,0.05,0.5,matWood,-1.9,0.62,2.6); box(0.05,0.6,0.05,matDark,-2.15,0.3,2.4); box(0.05,0.6,0.05,matDark,-1.65,0.3,2.4); box(0.05,0.6,0.05,matDark,-2.15,0.3,2.8); box(0.05,0.6,0.05,matDark,-1.65,0.3,2.8);
+const radio = new T.Group(); radio.position.set(-1.9,0.65,2.6); radio.rotation.y=Math.PI*0.85; scene.add(radio);
+const rbody = new T.Mesh(new T.BoxGeometry(0.42,0.3,0.22), M({ color:0x6b4423, roughness:.35 })); rbody.position.y=0.15; rbody.castShadow=true; radio.add(rbody);
+const grille = new T.Mesh(new T.PlaneGeometry(0.22,0.18), M({ map:canvasTex(128,128,(g,w,h)=>{ g.fillStyle='#2b1d12'; g.fillRect(0,0,w,h); g.strokeStyle='#c9993f'; g.lineWidth=3; for(let x=8;x<w;x+=12){ g.beginPath(); g.moveTo(x,6); g.lineTo(x,h-6); g.stroke(); } }) })); grille.position.set(-0.07,0.16,0.111); radio.add(grille);
+const rdial = new T.Mesh(new T.CircleGeometry(0.05,24), M({ color:0xffd58a, emissive:0xffaa44, emissiveIntensity:.8 })); rdial.position.set(0.12,0.16,0.111); radio.add(rdial);
+
+// ---------- clickable clue proxies ----------
+const clickables=[];
+function proxy(id, obj, size){ const p=new T.Mesh(new T.BoxGeometry(size[0],size[1],size[2]), new T.MeshBasicMaterial({ visible:false })); p.userData.clue=id; if (obj.isGroup||obj.isMesh){ obj.updateMatrixWorld(); } p.position.copy(obj.getWorldPosition(new T.Vector3())); scene.add(p); clickables.push(p); return p; }
+function at(x,y,z){ const g=new T.Group(); g.position.set(x,y,z); scene.add(g); return g; }
+proxy('clock', clockGroup, [0.45,0.5,0.45]);
+proxy('letter', letter, [0.36,0.1,0.42]);
+proxy('pad', pad, [0.24,0.1,0.3]);
+proxy('radio', radio, [0.55,0.5,0.4]).position.y += 0.15;
+proxy('prints', at(winX0-0.12,0.05,-2.38), [0.7,0.2,1.5]);
+proxy('window', at(winX0,1.75,-RD/2+0.2), [1.8,1.8,0.5]);
+proxy('book', at(bx,1.2,bz), [0.5,2.4,1.8]);
+proxy('stockings', at(fx-0.55,1.05,fz), [0.2,0.45,1.5]);
+proxy('painting', at(RW/2-0.08,2.25,fz), [0.12,1.0,1.3]);
+proxy('tree', at(2.7,1.3,-2.75), [1.4,2.6,1.4]);
+proxy('presents', at(2.55,0.15,-2.4), [1.1,0.3,0.6]);
+proxy('chair', at(1.9,0.55,-1.9), [0.95,1.1,0.95]);
+proxy('door', at(1.6,1.1,RD/2-0.08), [1.1,2.2,0.12]);
+proxy('portrait', at(-1.2,2.0,RD/2-0.06), [0.9,1.1,0.1]);
+proxy('cabinet', at(-2.6,0.8,RD/2-0.28), [1.25,1.0,0.5]);
+proxy('lamp', at(dx-0.2,1.15,dz+0.6), [0.42,0.75,0.42]);
+proxy('phone', phone, [0.26,0.22,0.28]);
+proxy('glove', glove, [0.3,0.12,0.3]).position.y = 0.05;
+
+// markers (glowing rings) for the "show markers" option
+const markerTex = canvasTex(128,128,(g,w,h)=>{ const gr=g.createRadialGradient(64,64,10,64,64,60); gr.addColorStop(0,'rgba(255,215,120,0)'); gr.addColorStop(.55,'rgba(255,215,120,.9)'); gr.addColorStop(.7,'rgba(255,215,120,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); });
+const markers = clickables.map(c=>{ /* every inspectable thing gets a marker, not only clues */ const s=new T.Sprite(new T.SpriteMaterial({ map:markerTex, depthTest:false, transparent:true })); s.scale.set(0.35,0.35,1); s.position.copy(c.position); s.position.y += 0.05; s.visible=false; s.userData.clue=c.userData.clue; scene.add(s); return s; });
+
+// ---------- lights ----------
+scene.add(new T.HemisphereLight(0xffe2b8, 0x24160c, 0.35));
+const moon = new T.DirectionalLight(0x9fb6ff, 0.35); moon.position.set(winX0, 3, -8); moon.target.position.set(winX0,0,-2); scene.add(moon); scene.add(moon.target);
+const fill = new T.PointLight(0xffd7a8, 0.5, 9, 2); fill.position.set(0,2.8,0.5); scene.add(fill);
+
+// ---------- falling snow outside ----------
+const snowN = 500; const snowGeo = new T.BufferGeometry(); const sp = new Float32Array(snowN*3);
+for (let i=0;i<snowN;i++){ sp[i*3]=winX0+rnd(-3,3); sp[i*3+1]=rnd(0,4); sp[i*3+2]=backZ-rnd(0.3,3.5); }
+snowGeo.setAttribute('position', new T.BufferAttribute(sp,3));
+const snow = new T.Points(snowGeo, new T.PointsMaterial({ color:0xffffff, size:0.03, transparent:true, opacity:.9 })); scene.add(snow);
+// a few flakes drifting in through the window
+const inN = 60; const inGeo = new T.BufferGeometry(); const ip = new Float32Array(inN*3);
+for (let i=0;i<inN;i++){ ip[i*3]=winX0+rnd(-0.6,0.6); ip[i*3+1]=rnd(0.2,2.4); ip[i*3+2]=backZ+rnd(0,1.4); }
+inGeo.setAttribute('position', new T.BufferAttribute(ip,3));
+const snowIn = new T.Points(inGeo, new T.PointsMaterial({ color:0xffffff, size:0.02, transparent:true, opacity:.8 })); scene.add(snowIn);
+
+// ---------- look controls ----------
+let yaw = 0.25, pitch = -0.08, targetFov = (window.innerWidth < window.innerHeight) ? 82 : 70;
+let dragging=false, moved=0, lx=0, ly=0;
+const el = renderer.domElement;
+function setLook(){ camera.rotation.order='YXZ'; camera.rotation.y=yaw; camera.rotation.x=pitch; }
+setLook();
+el.addEventListener('pointerdown', e=>{ labelEl.style.opacity=0; dragging=true; moved=0; lx=e.clientX; ly=e.clientY; el.setPointerCapture(e.pointerId); });
+el.addEventListener('pointermove', e=>{
+  if (dragging){ const dx=e.clientX-lx, dy=e.clientY-ly; moved+=Math.abs(dx)+Math.abs(dy); yaw += dx*0.0045; pitch += dy*0.0035; pitch=Math.max(-1.1,Math.min(0.9,pitch)); lx=e.clientX; ly=e.clientY; setLook(); }
+  else hover(e);
+});
+el.addEventListener('pointerup', e=>{ dragging=false; if (moved<8) pick(e); });
+el.addEventListener('wheel', e=>{ targetFov = Math.max(35, Math.min(80, targetFov + e.deltaY*0.03)); }, { passive:true });
+// pinch zoom
+let pinchD=0; el.addEventListener('touchmove', e=>{ if (e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); if (pinchD) targetFov=Math.max(35,Math.min(80,targetFov-(d-pinchD)*0.08)); pinchD=d; } }, { passive:true });
+el.addEventListener('touchend', ()=>{ pinchD=0; });
+
+const ray = new T.Raycaster(); const ndc = new T.Vector2();
+const labelEl = document.getElementById('label');
+function hitAt(e){ ndc.x = (e.clientX/window.innerWidth)*2-1; ndc.y = -(e.clientY/window.innerHeight)*2+1; ray.setFromCamera(ndc, camera); const h = ray.intersectObjects(clickables, false); return h.length ? h[0].object : null; }
+function hover(e){ const h=hitAt(e); if (h){ el.style.cursor='pointer'; labelEl.textContent = (found.has(h.userData.clue)||xfound.has(h.userData.clue)) ? (LOOK[h.userData.clue]||{}).name+' (in your notes)' : 'Look'; labelEl.style.left=e.clientX+'px'; labelEl.style.top=(e.clientY-14)+'px'; labelEl.style.opacity=1; } else { el.style.cursor='grab'; labelEl.style.opacity=0; } }
+let glide=null, baseFov=targetFov;
+let pendingOpen=false;
+function pick(e){ if (glide||pendingOpen||modal.classList.contains('open')) return; const h=hitAt(e); if (!h) return; pendingOpen=true;
+  const p=h.position, c=camera.position; const dx=p.x-c.x, dz=p.z-c.z, dy=p.y-c.y;
+  glide={ y0:yaw, p0:pitch, y1:Math.atan2(-dx,-dz), p1:Math.atan2(dy,Math.hypot(dx,dz)), t:0 };
+  let d=glide.y1-glide.y0; while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; glide.y1=glide.y0+d;
+  baseFov=targetFov; targetFov=38; setTimeout(()=>{ pendingOpen=false; openLook(h.userData.clue); }, 650); }
+
+// ---------- close-up drawings (the "look closer" view) ----------
+const DRAW = {};
+function wood(g,w,h,base){ g.fillStyle=base||'#5a3620'; g.fillRect(0,0,w,h); for(let i=0;i<60;i++){ g.strokeStyle=`rgba(20,10,4,${rnd(.05,.2)})`; g.lineWidth=rnd(1,3); g.beginPath(); const y=rnd(0,h); g.moveTo(0,y); g.bezierCurveTo(w*.3,y+rnd(-8,8),w*.7,y+rnd(-8,8),w,y+rnd(-6,6)); g.stroke(); } }
+function paper(g,x,y,w,h,col){ g.save(); g.shadowColor='rgba(0,0,0,.5)'; g.shadowBlur=18; g.fillStyle=col||'#f8f0dc'; g.fillRect(x,y,w,h); g.restore(); }
+DRAW.clock=(g,w,h)=>{ wood(g,w,h,'#3b2414'); g.fillStyle='#5a3218'; g.fillRect(w*.27,h*.05,w*.46,h*.9); const cx=w/2, cy=h/2, R=h*.36;
+  g.fillStyle='#f3ead2'; g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.fill(); g.strokeStyle='#c9993f'; g.lineWidth=10; g.stroke();
+  g.fillStyle='#2a1d14'; g.font='bold 24px Georgia'; g.textAlign='center'; g.textBaseline='middle'; const nums=['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+  for (let i=0;i<12;i++){ const a=i*Math.PI/6-Math.PI/2; g.fillText(nums[i],cx+Math.cos(a)*R*.78,cy+Math.sin(a)*R*.78); }
+  const hand=(ang,len,wid)=>{ g.save(); g.translate(cx,cy); g.rotate(ang); g.fillStyle='#1a120c'; g.fillRect(-wid/2,-len,wid,len); g.restore(); };
+  hand((9+40/60)/12*Math.PI*2, R*.48, 9); hand(40/60*Math.PI*2, R*.72, 5);
+  g.strokeStyle='rgba(70,70,70,.85)'; g.lineWidth=2; g.beginPath(); g.moveTo(cx-R*.7,cy-R*.45); g.lineTo(cx-R*.05,cy+R*.1); g.lineTo(cx+R*.25,cy+R*.75); g.moveTo(cx-R*.05,cy+R*.1); g.lineTo(cx+R*.7,cy-R*.15); g.moveTo(cx-R*.05,cy+R*.1); g.lineTo(cx-R*.5,cy+R*.6); g.stroke();
+  g.fillStyle='rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(cx-R*.35,cy-R*.4,R*.25,R*.12,-0.6,0,Math.PI*2); g.fill(); };
+DRAW.letter=(g,w,h)=>{ wood(g,w,h); paper(g,w*.06,h*.06,w*.88,h*.88); g.fillStyle='#22305a'; g.font='30px Caveat, cursive'; g.textBaseline='top';
+  const L=['Uncle A,','I will play the carols in the hall from half past','nine until the very last one, then I\'ll bring','your tea up. Don\'t you dare peek at your present!','','                                   Love, E.'];
+  L.forEach((t,i)=>g.fillText(t,w*.11,h*.12+i*h*.13)); };
+DRAW.pad=(g,w,h)=>{ wood(g,w,h); paper(g,w*.08,h*.06,w*.84,h*.88,'#f3f0e6'); g.fillStyle='#b23a3a'; g.fillRect(w*.08,h*.06,w*.84,h*.1); g.fillStyle='#fff'; g.font='bold 20px Special Elite, monospace'; g.textBaseline='middle'; g.fillText('MESSAGES',w*.12,h*.11);
+  g.fillStyle='#202020'; g.font='21px Special Elite, monospace'; g.textBaseline='top'; const L=['9:05 pm  Dr Hale called out to','         Lower Fen farm. Took the sleigh.','9:20 pm  Road closed by snow. No one','         in or out until morning.','9:30 pm  Dr Hale rang from Lower Fen.','         Snowed in until morning.','                                - A.P.'];
+  L.forEach((t,i)=>g.fillText(t,w*.12,h*.22+i*h*.088)); g.strokeStyle='rgba(0,0,80,.12)'; for(let y=h*.21;y<h*.9;y+=h*.088){ g.beginPath(); g.moveTo(w*.1,y); g.lineTo(w*.9,y); g.stroke(); } };
+DRAW.radio=(g,w,h)=>{ wood(g,w,h,'#2a1d12'); g.fillStyle='#6b4423'; g.beginPath(); g.roundRect ? g.roundRect(w*.08,h*.12,w*.84,h*.76,30) : g.rect(w*.08,h*.12,w*.84,h*.76); g.fill();
+  g.fillStyle='#2b1d12'; g.fillRect(w*.14,h*.22,w*.42,h*.56); g.strokeStyle='#c9993f'; g.lineWidth=5; for(let x=w*.16;x<w*.55;x+=18){ g.beginPath(); g.moveTo(x,h*.24); g.lineTo(x,h*.76); g.stroke(); }
+  g.fillStyle='#ffd58a'; g.beginPath(); g.arc(w*.78,h*.34,h*.08,0,Math.PI*2); g.fill(); g.fillStyle='#2a1d14'; g.font='14px Georgia'; g.textAlign='center'; g.fillText('TUNING',w*.78,h*.47);
+  g.fillStyle='#3a2415'; g.beginPath(); g.arc(w*.78,h*.6,h*.085,0,Math.PI*2); g.fill(); g.fillStyle='#c9993f'; g.fillRect(w*.775,h*.52,w*.01,h*.06); g.fillStyle='#f3e7cf'; g.font='13px Georgia'; g.fillText('ON / OFF',w*.78,h*.74); g.textAlign='left'; };
+DRAW.prints=(g,w,h)=>{ wood(g,w,h,'#6a4526'); for(let y=0;y<h;y+=h/5){ g.fillStyle='rgba(20,10,2,.45)'; g.fillRect(0,y,w,2); }
+  g.save(); g.translate(w/2,h*.5); g.rotate(-0.25); g.fillStyle='rgba(28,22,16,.62)'; g.beginPath(); g.ellipse(0,-h*.1,w*.13,h*.26,0,0,Math.PI*2); g.fill(); g.beginPath(); g.ellipse(0,h*.3,w*.1,h*.12,0,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(225,232,240,.6)'; const star=(cx,cy,r)=>{ g.beginPath(); for(let i=0;i<10;i++){ const a=i*Math.PI/5-Math.PI/2, rr=i%2?r*.45:r; g.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } g.closePath(); g.fill(); };
+  for (let i=0;i<4;i++) for (let j=0;j<2;j++) star(-w*.045+j*w*.09, -h*.28+i*h*.1, 13); star(0,h*.3,15);
+  g.fillStyle='rgba(255,255,255,.18)'; g.beginPath(); g.ellipse(w*.04,-h*.18,w*.05,h*.08,0.3,0,Math.PI*2); g.fill(); g.restore(); };
+DRAW.window=(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#0c1426'); gr.addColorStop(1,'#33415e'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  for(let i=0;i<120;i++){ g.fillStyle='rgba(255,255,255,.85)'; g.fillRect(rnd(0,w),rnd(0,h),2,2); }
+  g.fillStyle='#e9e1cf'; g.fillRect(w*.12,h*.05,w*.06,h*.9); g.fillRect(w*.82,h*.05,w*.06,h*.9); g.fillRect(w*.12,h*.05,w*.76,h*.06); g.fillRect(w*.08,h*.82,w*.84,h*.08); g.fillStyle='#ffffff'; g.fillRect(w*.1,h*.78,w*.8,h*.05);
+  g.fillStyle='#c9993f'; g.fillRect(w*.45,h*.47,w*.12,h*.05); g.save(); g.translate(w*.5,h*.47); g.rotate(-1.0); g.fillRect(0,-h*.015,w*.12,h*.03); g.restore();
+  g.fillStyle='#f3e7cf'; g.font='14px Georgia'; g.fillText('garden',w*.66,h*.72); };
+DRAW.glove=(g,w,h)=>{ wood(g,w,h,'#4a2c18'); g.fillStyle='rgba(20,12,6,.45)'; g.beginPath(); g.ellipse(w*.5,h*.56,w*.3,h*.36,0,0,Math.PI*2); g.fill();
+  g.save(); g.translate(w*.5,h*.55); g.rotate(-0.15); g.fillStyle='#3e5a34';
+  g.beginPath(); g.roundRect ? g.roundRect(-95,-70,190,170,40) : g.rect(-95,-70,190,170); g.fill();
+  for (let i=0;i<4;i++){ g.beginPath(); g.roundRect ? g.roundRect(-92+i*47,-170,40,120,18) : g.rect(-92+i*47,-170,40,120); g.fill(); }
+  g.save(); g.translate(108,0); g.rotate(-0.7); g.beginPath(); g.roundRect ? g.roundRect(-20,-70,40,100,18) : g.rect(-20,-70,40,100); g.fill(); g.restore();
+  g.fillStyle='#2e4428'; g.fillRect(-100,95,200,40);
+  g.fillStyle='rgba(255,255,255,.12)'; g.beginPath(); g.ellipse(-30,-20,50,26,-0.4,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(225,232,240,.72)'; const star=(cx,cy,r)=>{ g.beginPath(); for(let i=0;i<10;i++){ const a=i*Math.PI/5-Math.PI/2, rr=i%2?r*.45:r; g.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } g.closePath(); g.fill(); };
+  for (let i=0;i<3;i++) for (let j=0;j<3;j++) star(-40+j*40, -30+i*38, 10);
+  g.restore(); };
+const SHELF=(()=>{ const out=[]; let x=0.04, k=0; while (x<0.96){ const bw=(k===9)?0.07:rnd(0.04,0.075); const bh=rnd(0.62,0.78); out.push([x,bw,bh]); if (k===9) LOOK.book.hot=[[x-0.01,0.12,x+bw+0.01,0.94]]; x+=bw+0.005; k++; } return out; })();
+DRAW.book=(g,w,h,open)=>{ wood(g,w,h,'#3b2414'); const cols=['#6e1f1f','#1f3a2c','#2f4a6b','#5a3a1a','#3d2b4f','#7a5a22','#2a2a2a','#4f2a2a'];
+  g.fillStyle='#2a180c'; g.fillRect(0,h*.92,w,h*.08);
+  SHELF.forEach(([nx,nbw,nbh],k)=>{ const x=nx*w, bw=nbw*w, bh=nbh*h; const pushed=(k===9);
+    if (pushed && open){ g.fillStyle='#1a0f08'; g.fillRect(x,h*.92-bh,bw,bh); g.fillStyle='#9a9a9a'; g.fillRect(x+bw*.2,h*.62,bw*.6,h*.05); g.beginPath(); g.arc(x+bw*.5,h*.58,bw*.25,0,Math.PI*2); g.strokeStyle='#9a9a9a'; g.lineWidth=6; g.stroke(); g.fillStyle='#b3241f'; g.fillRect(x+bw*.42,h*.66,bw*.16,h*.18); g.fillStyle='#f3ead2'; g.fillRect(x-bw*.4,h*.8,bw*1.8,h*.08); g.fillStyle='#2a1d14'; g.font='13px Georgia'; g.fillText('Garden door',x-bw*.35,h*.855); }
+    else { g.fillStyle = pushed ? '#4a1414' : cols[k%cols.length]; const off = pushed ? 0 : 0; g.fillRect(x, h*.92-bh+off, bw, bh); g.fillStyle='rgba(201,153,63,.8)'; g.fillRect(x, h*.92-bh*.7, bw, 4); g.fillRect(x, h*.92-bh*.25, bw, 4);
+      if (pushed){ g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(x, h*.92-bh, bw, bh); g.fillStyle='rgba(0,0,0,.6)'; g.fillRect(x-7,h*.92-bh-3,7,bh+3); g.fillRect(x+bw,h*.92-bh-3,7,bh+3); g.fillRect(x-7,h*.92-bh-6,bw+14,6); } }
+  }); };
+
+// ---------- modals ----------
+const modal=document.getElementById('modal'), card=document.getElementById('modalCard');
+function openModal(html){ card.innerHTML = '<button class="close" aria-label="Close">&times;</button>'+html; modal.classList.add('open'); card.querySelector('.close').onclick=closeModal; }
+function closeModal(){ modal.classList.remove('open'); stopAudio(); if (targetFov<45) targetFov=baseFov; }
+modal.addEventListener('click', e=>{ if (e.target===modal) closeModal(); });
+function updateCount(){ document.getElementById('count').textContent = `Clues ${found.size} / ${Object.keys(CLUES).length}`; markers.forEach(m=>{ m.material.color.set((found.has(m.userData.clue)||xfound.has(m.userData.clue))?0x88ff88:0xffffff); }); }
+function openLook(id){
+  const d = DECOYS[id], L = LOOK[id];
+  if (EXTRAS[id] && xfound.has(id)) return openExtra(id, false);
+  if (L && found.has(id)) return openFound(id, false);
+  const name = d ? d.name : L.name, look = d ? d.look : L.look;
+  openModal(`<div class="lookcard"><div class="kicker">You look</div><h2>${name}</h2><p>${look}</p><div class="row"><button class="primary" id="closer">Look closer</button><button id="moveon">Move on</button></div></div>`);
+  document.getElementById('moveon').onclick=closeModal;
+  document.getElementById('closer').onclick=()=> d ? openModal(`<div class="kicker">You look closer</div><h2>${d.name}</h2><p>${d.close}</p><div class="row"><button class="primary" id="ok">Keep searching</button></div>`) || (document.getElementById('ok').onclick=closeModal) : openExamine(id);
+}
+function openExamine(id){
+  const L=LOOK[id]; let misses=0;
+  openModal(`<div class="kicker">You look closer</div><h2>${L.name}</h2><p>${L.prompt}</p><canvas class="closeup" id="cu" width="600" height="400"></canvas><div class="miss" id="miss"></div>`);
+  const cv=document.getElementById('cu'); DRAW[id](cv.getContext('2d'), 600, 400, false);
+  cv.onclick=(e)=>{ const r=cv.getBoundingClientRect(); const x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+    const hit = L.hot.some(h=> x>=h[0] && x<=h[2] && y>=h[1] && y<=h[3]);
+    if (hit){
+      if (id==='book'){ DRAW.book(cv.getContext('2d'),600,400,true); document.getElementById('miss').textContent=''; setTimeout(()=>openFound(id,true), 900); }
+      else if (id==='radio'){ openFound(id,true); const b=document.getElementById('play'); if (b){ playBroadcast(); b.textContent='Stop'; b.dataset.on='1'; } }
+      else if (EXTRAS[id]) openExtra(id,true);
+      else openFound(id,true);
+    } else { misses++; document.getElementById('miss').textContent = misses>=3 ? 'Hint: '+L.hint : 'Nothing unusual there. Keep looking.'; }
+  };
+}
+function openFound(id, isNew){
+  const c=CLUES[id]; if (isNew){ found.add(id); updateCount(); }
+  openModal(`<div class="kicker">${c.kicker}${isNew?' · added to your case notes':' · already in your notes'}</div><h2>${c.name}</h2>${c.html}<div class="row"><button class="primary" id="ok">Keep searching</button></div>`);
+  document.getElementById('ok').onclick=closeModal;
+  if (c.audio) setupRadio();
+}
+function openExtra(id, isNew){
+  if (isNew){ xfound.add(id); updateCount(); }
+  openModal(`<div class="kicker">Extra clue${isNew?' · added to your case notes':' · already in your notes'}</div><div class="extracard"><div class="tag">Only in this room · not needed</div><h2>Extra clue for the Practice Night</h2><p>${EXTRAS[id].text}</p><p class="never">You can solve the Practice Night without this clue.</p></div><div class="row"><button class="primary" id="ok">Keep searching</button></div>`);
+  document.getElementById('ok').onclick=closeModal;
+}
+document.getElementById('btnNotes').onclick=()=>{
+  const items=[...found].map(id=>`<li>${CLUES[id].note}</li>`).join('') || '<li>Nothing yet. Look around the room and tap anything that seems out of place.</li>';
+  openModal(`<div class="kicker">Case notes</div><h2>What you have found</h2><ol class="notes">${items}</ol>${xfound.size ? `<h3 class="xh">Extra clue (you never need it)</h3><ul class="notes"><li>${EXTRAS.glove.text}</li></ul>` : ''}<p style="font-size:12.5px;opacity:.75">${found.size} of ${Object.keys(CLUES).length} clues found. Extra clue found: ${xfound.size} of 1.</p>`);
+};
+const cleared = new Set();
+document.getElementById('btnSuspects').onclick=()=>{
+  openModal(`<div class="kicker">The household</div><h2>3 suspects</h2><p style="font-size:13px">Tap a suspect to mark them cleared when a clue rules them out. Tap again to undo.</p>${SUSPECTS.map(s=>`<div class="suspect${cleared.has(s.id)?' cleared':''}" data-id="${s.id}"><div class="face" style="background:${s.color}">${s.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div><b>${s.name}</b><span><i>${s.role}.</i> ${s.fact}</span></div><div class="stamp">CLEARED</div></div>`).join('')}`);
+  card.querySelectorAll('.suspect').forEach(el=> el.onclick=()=>{ const id=el.dataset.id; if (cleared.has(id)) cleared.delete(id); else cleared.add(id); el.classList.toggle('cleared'); });
+};
+document.getElementById('btnMarkers').onclick=(e)=>{ markersOn=!markersOn; markers.forEach(m=>m.visible=markersOn); e.target.textContent = markersOn ? 'Hide clue markers' : 'Show clue markers'; if (markersOn){ const h=document.getElementById('hint'); h.textContent='Markers show everything you can look at, not only clues'; h.style.opacity=1; setTimeout(()=>h.style.opacity=0,4000); } };
+document.getElementById('btnAccuse').onclick=()=>{
+  openModal(`<div class="kicker">Name the culprit · step 1 of 2</div><h2>Who was in the study at 9:40?</h2>${SUSPECTS.map(s=>`<button class="choice" data-id="${s.id}"><b>${s.name}</b>, ${s.role.toLowerCase()}${cleared.has(s.id)?' <i>(you cleared them)</i>':''}</button>`).join('')}`);
+  card.querySelectorAll('.choice').forEach(b=> b.onclick=()=> proveIt(b.dataset.id));
+};
+function proveIt(who){
+  const S=SUSPECTS.find(s=>s.id===who);
+  if (found.size<2){ openModal(`<div class="kicker">Not yet</div><h2>You need evidence</h2><p>You have found ${found.size} clue${found.size===1?'':'s'}. Search the room and look closer at anything that seems wrong before you accuse anyone.</p><div class="row"><button class="primary" id="ok">Keep searching</button></div>`); document.getElementById('ok').onclick=closeModal; return; }
+  openModal(`<div class="kicker">Name the culprit · step 2 of 2</div><h2>Prove it was ${S.name.split(' ')[0]==='Mrs'?S.name:S.name.split(' ')[0]}</h2><p>Choose the <b>2 clues</b> from your case notes that point to ${S.name} and no one else.</p><div class="proof">${[...found].map(id=>`<label><input type="checkbox" value="${id}"> <span>${CLUES[id].note}</span></label>`).join('')}</div><div class="row"><button class="primary" id="accuse">Make the accusation</button><button id="back">Back</button></div><div class="result" id="result"></div>`);
+  document.getElementById('back').onclick=()=>document.getElementById('btnAccuse').onclick();
+  document.getElementById('accuse').onclick=()=>{
+    const pick=[...card.querySelectorAll('.proof input:checked')].map(x=>x.value); const r=document.getElementById('result');
+    if (pick.length!==2){ r.className='result bad'; r.textContent='Choose exactly 2 clues.'; return; }
+    const proof = pick.includes('prints') && pick.includes('book');
+    if (who==='finch' && proof){ r.className='result good'; r.innerHTML=`<b>Case closed.</b> The star-soled boot prints came in from the kitchen garden, and the garden-door key on its red ribbon was hidden behind a book. Both belong to Mrs Finch. Evelyn was live on the radio at the piano at 9:40, and Dr Hale was cut off by the snow from 9:20.<br><br><b>Your code word: ORANGE.</b> Turn to Night 1. If ORANGE matches "Last night's code word" at the top of the page, you have solved the practice case.`; }
+    else if (who==='finch'){ r.className='result bad'; r.innerHTML=`Right person, but that proof would not convince anyone. Which 2 clues belong to Mrs Finch and nobody else?`; }
+    else if (who==='evelyn'){ r.className='result bad'; r.innerHTML=`Not Evelyn. Have you listened to the radio? Where was she at 9:40?`; }
+    else { r.className='result bad'; r.innerHTML=`Not Dr Hale. Read the telephone message pad. Could he have been in the house at 9:40?`; }
+  };
+}
+// ---------- audio: the radio broadcast ----------
+let actx=null, noiseNode=null, waveTimer=null, voiceTimer=null;
+function setupRadio(){
+  const wave=document.getElementById('wave'); if (!wave) return; wave.innerHTML='<i></i>'.repeat(26);
+  const btn=document.getElementById('play'); btn.onclick=()=>{ if (btn.dataset.on){ stopAudio(); btn.textContent='Play the broadcast'; delete btn.dataset.on; } else { playBroadcast(); btn.textContent='Stop'; btn.dataset.on='1'; } };
+}
+function stopAudio(){ clearTimeout(voiceTimer); try{ window.__r0rec && window.__r0rec.pause(); }catch(e){} try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} try{ noiseNode && noiseNode.stop(); }catch(e){} noiseNode=null; clearInterval(waveTimer); }
+function playBroadcast(){
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    // radio crackle and a few bars of a carol melody (public domain)
+    const len = actx.sampleRate*14; const buf = actx.createBuffer(1,len,actx.sampleRate); const d=buf.getChannelData(0);
+    for (let i=0;i<len;i++){ d[i] = (Math.random()*2-1)*0.06 + (Math.random()<0.0008 ? (Math.random()*2-1)*0.5 : 0); }
+    const notes=[392,440,392,329.6, 392,440,392,329.6, 587.3,587.3,493.9, 523.3,523.3,392];
+    const beat=0.42*actx.sampleRate; notes.forEach((f,n)=>{ for(let i=0;i<beat*1.4 && (n*beat+i)<len;i++){ const t=i/actx.sampleRate; d[Math.floor(n*beat+i)] += Math.sin(2*Math.PI*f*t)*0.12*Math.exp(-t*2.2); } });
+    const src=actx.createBufferSource(); src.buffer=buf;
+    const bp=actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1500; bp.Q.value=0.7;
+    const gain=actx.createGain(); gain.gain.value=0.9;
+    src.connect(bp).connect(gain).connect(actx.destination); src.start(); noiseNode=src;
+  } catch(e) {}
+  try {
+    const text = document.getElementById('transcript').textContent.replace(/["“”]/g,'');
+    const u = new SpeechSynthesisUtterance(text); u.rate=0.95; u.pitch=0.9;
+    const vs = speechSynthesis.getVoices(); const v = vs.find(v=>/en-GB/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)); if (v) u.voice=v;
+    const rec = new Audio('../../audio/r0_radio.mp3'); let fell = false; const fb = ()=>{ if (fell || !waveTimer) return; fell = true; speechSynthesis.speak(u); };
+    rec.addEventListener('error', fb, { once:true }); window.__r0rec = rec;
+    voiceTimer = setTimeout(()=>{ const p = rec.play(); if (p && p.catch) p.catch(fb); }, 2600);
+  } catch(e) {}
+  const bars=[...document.querySelectorAll('#wave i')]; waveTimer=setInterval(()=>bars.forEach(b=>b.style.height=(15+Math.random()*85)+'%'),120);
+}
+
+// ---------- intro ----------
+{ const h=location.hash; if (h.indexOf('#preview')===0){ document.getElementById('intro').classList.remove('open'); const k=parseInt(h.slice(8))||0; const Y=[0.25,-1.2,-2.3,1.3,2.6]; yaw=Y[k%5]; setLook(); } }
+document.getElementById('enter').onclick=()=>{ document.getElementById('intro').classList.remove('open'); try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){} setTimeout(()=>{ document.getElementById('hint').style.opacity=0; }, 7000); };
+
+// ---------- animate ----------
+const clock = new T.Clock();
+function tick(){
+  const t = clock.getElapsedTime();
+  fireLight.intensity = 2.0 + Math.sin(t*9)*0.25 + Math.sin(t*23)*0.18 + Math.random()*0.15;
+  flames.forEach((f,i)=>{ f.scale.y = 0.3 + Math.sin(t*10+i*1.7)*0.07 + Math.random()*0.04; f.scale.x = 0.15 + Math.sin(t*7+i)*0.02; });
+  bulbs.forEach((b,i)=>{ b.material.emissiveIntensity = 0.6 + (Math.sin(t*2+i*1.3)>0.2 ? 1.0 : 0.15); });
+  const p=snow.geometry.attributes.position; for (let i=0;i<snowN;i++){ let y=p.getY(i)-0.006-(i%5)*0.0012; if (y<0) y=4; p.setY(i,y); p.setX(i,p.getX(i)+Math.sin(t+i)*0.0006); } p.needsUpdate=true;
+  const q=snowIn.geometry.attributes.position; for (let i=0;i<inN;i++){ let y=q.getY(i)-0.004; let z=q.getZ(i)+0.003; if (y<0.02||z>backZ+1.6){ y=rnd(1.2,2.4); z=backZ+0.05; } q.setY(i,y); q.setZ(i,z); } q.needsUpdate=true;
+  if (window.__curtain) window.__curtain.rotation.y = Math.sin(t*1.3)*0.06;
+  if (window.__pane) window.__pane.rotation.y = -1.05 + Math.sin(t*0.9)*0.03;
+  markers.forEach((m,i)=>{ const s=0.28+Math.sin(t*3+i)*0.06; m.scale.set(s,s,1); });
+  if (glide){ glide.t=Math.min(1,glide.t+0.06); const k=glide.t*glide.t*(3-2*glide.t); yaw=glide.y0+(glide.y1-glide.y0)*k; pitch=glide.p0+(glide.p1-glide.p0)*k; setLook(); if (glide.t>=1) glide=null; }
+  camera.fov += (targetFov-camera.fov)*0.12; camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+window.addEventListener('resize', ()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+document.getElementById('loading').style.display='none';
+tick();
+window.__room = { clickables, camera, LOOK, EXTRAS, xfound, openLook, isBusy:()=>!!glide||pendingOpen, setYaw:(y,p)=>{ yaw=y; pitch=(p===undefined?pitch:p); setLook(); }, found };
+window.__ready = true;
+}, 30));
+</script>
+</body>
+</html>
